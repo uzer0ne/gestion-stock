@@ -27,9 +27,16 @@ class Entrepot
     #[ORM\OneToMany(targetEntity: Stock::class, mappedBy: 'entrepot')]
     private Collection $stocks;
 
+    /**
+     * @var Collection<int, MouvementStock>
+     */
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'entrepot')]
+    private Collection $mouvementStocks;
+
     public function __construct()
     {
         $this->stocks = new ArrayCollection();
+        $this->mouvementStocks = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -85,6 +92,36 @@ class Entrepot
             // set the owning side to null (unless already changed)
             if ($stock->getEntrepot() === $this) {
                 $stock->setEntrepot(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MouvementStock>
+     */
+    public function getMouvementStocks(): Collection
+    {
+        return $this->mouvementStocks;
+    }
+
+    public function addMouvementStock(MouvementStock $mouvementStock): static
+    {
+        if (!$this->mouvementStocks->contains($mouvementStock)) {
+            $this->mouvementStocks->add($mouvementStock);
+            $mouvementStock->setEntrepot($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementStock(MouvementStock $mouvementStock): static
+    {
+        if ($this->mouvementStocks->removeElement($mouvementStock)) {
+            // set the owning side to null (unless already changed)
+            if ($mouvementStock->getEntrepot() === $this) {
+                $mouvementStock->setEntrepot(null);
             }
         }
 
