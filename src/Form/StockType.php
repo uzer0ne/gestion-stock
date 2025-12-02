@@ -15,7 +15,13 @@ class StockType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('quantite')
+            ->add('quantite', null, [
+                'label' => 'Quantité initiale',
+                'attr' => [
+                    'min' => 0,       // Bloque la saisie en dessous de 0
+                    'placeholder' => 'ex: 10'
+                ]
+            ])
             ->add('emplacement')
             // Configuration du menu déroulant PRODUIT
             ->add('produit', EntityType::class, [

@@ -32,15 +32,20 @@
                 </thead>
                 <tbody>
                 {% for stock in stocks %}
-                    <tr>
+                    {# On calcule si c'est critique : Est-ce que la quantité est <= au seuil du produit ? #}
+                    {% set estCritique = stock.quantite <= stock.produit.seuilAlerte %}
+
+                    <tr class="{{ estCritique ? 'table-danger border-danger' : '' }}">
                         <td>
-                            <strong>{{ stock.produit.nom }}</strong><br>
-                            <small class="text-muted">{{ stock.produit.reference }}</small>
-                        </td>
-                        <td>
-                            <span class="badge bg-info text-dark">{{ stock.emplacement }}</span>
+                            <strong>{{ stock.produit.nom }}</strong>
+                            
+                            {# Si critique, on ajoute un petit badge d'alerte #}
+                            {% if estCritique %}
+                                <span class="badge bg-danger ms-2">⚠️ STOCK BAS</span>
+                            {% endif %}
+                            
                             <br>
-                            <small class="text-muted">{{ stock.entrepot.nom }}</small>
+                            <small class="text-muted">{{ stock.produit.reference }}</small>
                         </td>
                         
                         {# --- C'EST ICI LA PARTIE IMPORTANTE (Les Boutons) --- #}

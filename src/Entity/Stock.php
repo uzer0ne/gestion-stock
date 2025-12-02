@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\StockRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StockRepository::class)]
 class Stock
@@ -14,6 +15,7 @@ class Stock
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\PositiveOrZero(message: "Le stock ne peut pas être négatif !")]
     private ?int $quantite = null;
 
     #[ORM\Column(length: 255)]

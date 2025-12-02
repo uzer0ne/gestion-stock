@@ -17,6 +17,10 @@ class ProduitType extends AbstractType
             ->add('nom')
             ->add('reference')
             ->add('prixVente')
+            ->add('seuilAlerte', null, [
+                'label' => 'Alerter si stock inférieur à :',
+                'attr' => ['min' => 0]
+            ])
             // C'est ici qu'on corrige le menu déroulant CATEGORIE
             ->add('categorie', EntityType::class, [
                 'class' => Categorie::class,

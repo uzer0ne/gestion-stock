@@ -40,6 +40,9 @@ class Produit
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'produit')]
     private Collection $mouvementStocks;
 
+    #[ORM\Column]
+    private ?int $seuilAlerte = null;
+
     public function __construct()
     {
         $this->stocks = new ArrayCollection();
@@ -161,5 +164,17 @@ class Produit
     public function __toString(): string
     {
         return $this->nom . ' (' . $this->reference . ')';
+    }
+
+    public function getSeuilAlerte(): ?int
+    {
+        return $this->seuilAlerte;
+    }
+
+    public function setSeuilAlerte(int $seuilAlerte): static
+    {
+        $this->seuilAlerte = $seuilAlerte;
+
+        return $this;
     }
 }
