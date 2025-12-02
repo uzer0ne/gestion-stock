@@ -23,6 +23,20 @@
                 <th>PrixVente</th>
                 <td>{{ produit.prixVente }}</td>
             </tr>
+            <tr>
+                <th>Fournisseur</th>
+                <td>
+                    {% if produit.fournisseur %}
+                        <a href="{{ path('app_fournisseur_show', {'id': produit.fournisseur.id}) }}" class="text-decoration-none">
+                            🏢 {{ produit.fournisseur.nom }}
+                        </a>
+                        <br>
+                        <small class="text-muted">{{ produit.fournisseur.email }}</small>
+                    {% else %}
+                        <span class="text-muted">Aucun fournisseur enregistré</span>
+                    {% endif %}
+                </td>
+            </tr>
         </tbody>
     </table>
 

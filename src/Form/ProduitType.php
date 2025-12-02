@@ -27,6 +27,10 @@ class ProduitType extends AbstractType
                 'choice_label' => 'nom',
                 'placeholder' => 'Choisir une catégorie',
             ])
+            ->add('fournisseur', null, [
+                'choice_label' => 'nom',
+                'placeholder' => 'Choisir un fournisseur',
+            ])
         ;
     }
 

@@ -43,6 +43,9 @@ class Produit
     #[ORM\Column]
     private ?int $seuilAlerte = null;
 
+    #[ORM\ManyToOne(inversedBy: 'produits')]
+    private ?Fournisseur $fournisseur = null;
+
     public function __construct()
     {
         $this->stocks = new ArrayCollection();
@@ -174,6 +177,18 @@ class Produit
     public function setSeuilAlerte(int $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+
+        return $this;
+    }
+
+    public function getFournisseur(): ?Fournisseur
+    {
+        return $this->fournisseur;
+    }
+
+    public function setFournisseur(?Fournisseur $fournisseur): static
+    {
+        $this->fournisseur = $fournisseur;
 
         return $this;
     }

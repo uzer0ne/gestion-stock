@@ -20,6 +20,7 @@
                         <th>Référence</th>
                         <th>Prix Vente</th>
                         <th>Catégorie</th>
+                        <th>Fournisseur</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -36,6 +37,15 @@
                                 <span class="badge bg-info text-dark">{{ produit.categorie.nom }}</span>
                             {% else %}
                                 <span class="text-muted">Aucune</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if produit.fournisseur %}
+                                <span class="badge bg-warning text-dark">
+                                    🏢 {{ produit.fournisseur.nom }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted text-small">Non assigné</span>
                             {% endif %}
                         </td>
                         <td>
