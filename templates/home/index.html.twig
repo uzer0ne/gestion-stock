@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1>📊 Tableau de Bord</h1>
+        <div>
+            <a href="{{ path('app_stock_new') }}" class="btn btn-primary">Gérer le Stock</a>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">État du Stock par Produit</h6>
+        </div>
+        <div class="card-body">
+            {{ render_chart(chart) }}
+        </div>
+    </div>
+
+    <div class="row text-center">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-uppercase fw-bold mb-1">Entrées Rapides</div>
+                    <a href="{{ path('app_produit_index') }}" class="btn btn-light btn-sm stretched-link">Voir Produits</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-warning text-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-uppercase fw-bold mb-1">Historique</div>
+                    <a href="{{ path('app_historique') }}" class="btn btn-light btn-sm stretched-link">Consulter</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-info text-white shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-uppercase fw-bold mb-1">Entrepôts</div>
+                    <a href="{{ path('app_entrepot_index') }}" class="btn btn-light btn-sm stretched-link">Gérer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
