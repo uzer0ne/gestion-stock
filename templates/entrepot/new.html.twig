@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Entrepot{% endblock %}
+
+{% block body %}
+    <h1>Create new Entrepot</h1>
+
+    {{ include('entrepot/_form.html.twig') }}
+
+    <a href="{{ path('app_entrepot_index') }}">back to list</a>
+{% endblock %}
