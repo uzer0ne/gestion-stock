@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 #[Route('/produit')]
 final class ProduitController extends AbstractController
@@ -23,13 +25,38 @@ final class ProduitController extends AbstractController
     }
 
     #[Route('/new', name: 'app_produit_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $produit = new Produit();
         $form = $this->createForm(ProduitType::class, $produit);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // --- DEBUT GESTION IMAGE ---
+            $imageFile = $form->get('imageFile')->getData();
+
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                // On nettoie le nom du fichier (supprime les accents, espaces...)
+                $safeFilename = $slugger->slug($originalFilename);
+                // On ajoute un ID unique pour éviter d'écraser une image existante
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    // On déplace le fichier dans le dossier configuré
+                    $imageFile->move(
+                        $this->getParameter('produits_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // Gérer l'erreur si besoin
+                }
+
+                // On enregistre seulement le NOM du fichier dans la base
+                $produit->setImageName($newFilename);
+            }
+            // --- FIN GESTION IMAGE ---
             $entityManager->persist($produit);
             $entityManager->flush();
 
@@ -51,12 +78,36 @@ final class ProduitController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_produit_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Produit $produit, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Produit $produit, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(ProduitType::class, $produit);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // --- DEBUT GESTION IMAGE ---
+            $imageFile = $form->get('imageFile')->getData();
+
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                // On nettoie le nom du fichier (supprime les accents, espaces...)
+                $safeFilename = $slugger->slug($originalFilename);
+                // On ajoute un ID unique pour éviter d'écraser une image existante
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    // On déplace le fichier dans le dossier configuré
+                    $imageFile->move(
+                        $this->getParameter('produits_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // Gérer l'erreur si besoin
+                }
+
+                // On enregistre seulement le NOM du fichier dans la base
+                $produit->setImageName($newFilename);
+            }
+            // --- FIN GESTION IMAGE ---
             $entityManager->flush();
 
             return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);

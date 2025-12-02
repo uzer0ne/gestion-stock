@@ -8,6 +8,8 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 
 class ProduitType extends AbstractType
 {
@@ -30,6 +32,23 @@ class ProduitType extends AbstractType
             ->add('fournisseur', null, [
                 'choice_label' => 'nom',
                 'placeholder' => 'Choisir un fournisseur',
+            ])
+
+            ->add('imageFile', FileType::class, [
+                'label' => 'Image du produit (JPG/PNG)',
+                'mapped' => false, // Important ! Ce champ n'existe pas dans l'entité
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M', // Taille max 2 Mo
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                        ],
+                        'mimeTypesMessage' => 'Merci d\'envoyer une image valide (JPG, PNG, WEBP)',
+                    ])
+                ],
             ])
         ;
     }

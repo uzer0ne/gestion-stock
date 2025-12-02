@@ -1,48 +1,88 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Produit{% endblock %}
+{% block title %}Détails du Produit{% endblock %}
 
 {% block body %}
-    <h1>Produit</h1>
+    <div class="container mt-4">
+        
+        <div class="row">
+            {# --- COLONNE GAUCHE : L'IMAGE --- #}
+            <div class="col-md-4 text-center mb-4">
+                <div class="card shadow border-0">
+                    <div class="card-body">
+                        {% if produit.imageName %}
+                            <img src="{{ asset('uploads/products/' ~ produit.imageName) }}" 
+                                 alt="{{ produit.nom }}" 
+                                 class="img-fluid rounded" 
+                                 style="max-height: 400px; object-fit: contain;">
+                        {% else %}
+                            <div class="alert alert-light py-5 text-muted">
+                                <span style="font-size: 3rem;">📷</span><br>
+                                Pas d'image disponible
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ produit.id }}</td>
-            </tr>
-            <tr>
-                <th>Nom</th>
-                <td>{{ produit.nom }}</td>
-            </tr>
-            <tr>
-                <th>Reference</th>
-                <td>{{ produit.reference }}</td>
-            </tr>
-            <tr>
-                <th>PrixVente</th>
-                <td>{{ produit.prixVente }}</td>
-            </tr>
-            <tr>
-                <th>Fournisseur</th>
-                <td>
-                    {% if produit.fournisseur %}
-                        <a href="{{ path('app_fournisseur_show', {'id': produit.fournisseur.id}) }}" class="text-decoration-none">
-                            🏢 {{ produit.fournisseur.nom }}
-                        </a>
-                        <br>
-                        <small class="text-muted">{{ produit.fournisseur.email }}</small>
-                    {% else %}
-                        <span class="text-muted">Aucun fournisseur enregistré</span>
-                    {% endif %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+            {# --- COLONNE DROITE : LES INFOS --- #}
+            <div class="col-md-8">
+                <h1 class="mb-3">{{ produit.nom }}</h1>
+                
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="ps-3" style="width: 30%;">Id</th>
+                                    <td>{{ produit.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-3">Référence</th>
+                                    <td><span class="badge bg-secondary">{{ produit.reference }}</span></td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-3">Prix de Vente</th>
+                                    <td class="fw-bold text-success">{{ produit.prixVente }} €</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-3">Fournisseur</th>
+                                    <td>
+                                        {% if produit.fournisseur %}
+                                            <a href="{{ path('app_fournisseur_show', {'id': produit.fournisseur.id}) }}" class="text-decoration-none">
+                                                🏢 {{ produit.fournisseur.nom }}
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">{{ produit.fournisseur.email }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Aucun fournisseur enregistré</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {# On ajoute le seuil d'alerte si tu l'as dans ton entité #}
+                                {% if produit.seuilAlerte is defined %}
+                                <tr>
+                                    <th class="ps-3">Seuil d'alerte</th>
+                                    <td class="text-danger fw-bold">{{ produit.seuilAlerte }} unités</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <a href="{{ path('app_produit_index') }}">back to list</a>
-
-    <a href="{{ path('app_produit_edit', {'id': produit.id}) }}">edit</a>
-
-    {{ include('produit/_delete_form.html.twig') }}
+                {# --- BOUTONS D'ACTION --- #}
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
+                        ← Retour à la liste
+                    </a>
+                    <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-warning">
+                        ✏️ Modifier
+                    </a>
+                    {# Le bouton supprimer est inclus via le formulaire #}
+                    {{ include('produit/_delete_form.html.twig') }}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
