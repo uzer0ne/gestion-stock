@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\MouvementStock;
 
 #[Route('/stock')]
 final class StockController extends AbstractController
@@ -77,5 +78,47 @@ final class StockController extends AbstractController
         }
 
         return $this->redirectToRoute('app_stock_index', [], Response::HTTP_SEE_OTHER);
+    }
+    #[Route('/stock/mouvement/{id}/{sens}', name: 'app_stock_mouvement', methods: ['GET'])]
+    public function mouvement(
+        Stock $stock, 
+        string $sens, 
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        // 1. Déterminer si on ajoute ou on retire
+        $quantite = ($sens === 'plus') ? 1 : -1;
+
+        // 2. Mettre à jour le stock (La table STOCK)
+        $nouveauStock = $stock->getQuantite() + $quantite;
+        
+        // Petite sécurité : pas de stock négatif
+        if ($nouveauStock < 0) {
+            $this->addFlash('danger', 'Impossible ! Le stock ne peut pas être négatif.');
+            return $this->redirectToRoute('app_stock_index');
+        }
+
+        $stock->setQuantite($nouveauStock);
+
+        // 3. Créer l'historique (La table MOUVEMENT_STOCK)
+        $mouvement = new \App\Entity\MouvementStock();
+        $mouvement->setProduit($stock->getProduit());
+        $mouvement->setEntrepot($stock->getEntrepot());
+        $mouvement->setQuantite($quantite);
+        $mouvement->setDateMouvement(new \DateTimeImmutable());
+        
+        // On définit le type (Entrée ou Sortie)
+        $type = ($sens === 'plus') ? 'ENTREE_MANUELLE' : 'SORTIE_MANUELLE';
+        $mouvement->setType($type);
+
+        // 4. On sauvegarde tout ça
+        $entityManager->persist($mouvement); // Prépare le mouvement
+        $entityManager->flush();             // Envoie tout en base (Stock + Mouvement)
+
+        // 5. Petit message de succès
+        $this->addFlash('success', 'Stock mis à jour avec succès !');
+
+        // 6. Retour à la liste
+        return $this->redirectToRoute('app_stock_index');
     }
 }

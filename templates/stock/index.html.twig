@@ -1,37 +1,82 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Stock index{% endblock %}
+{% block title %}Gestion du Stock{% endblock %}
 
 {% block body %}
-    <h1>Stock index</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🏭 État du Stock</h1>
+        <a href="{{ path('app_stock_new') }}" class="btn btn-primary">
+            + Ajouter du Stock
+        </a>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Quantite</th>
-                <th>Emplacement</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for stock in stocks %}
-            <tr>
-                <td>{{ stock.id }}</td>
-                <td>{{ stock.quantite }}</td>
-                <td>{{ stock.emplacement }}</td>
-                <td>
-                    <a href="{{ path('app_stock_show', {'id': stock.id}) }}">show</a>
-                    <a href="{{ path('app_stock_edit', {'id': stock.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
+    {# --- Zone pour afficher les messages de confirmation (Vert/Rouge) --- #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
         {% endfor %}
-        </tbody>
-    </table>
+    {% endfor %}
 
-    <a href="{{ path('app_stock_new') }}">Create new</a>
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Produit</th>
+                        <th>Emplacement</th>
+                        <th class="text-center">Quantité (Scan)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for stock in stocks %}
+                    <tr>
+                        <td>
+                            <strong>{{ stock.produit.nom }}</strong><br>
+                            <small class="text-muted">{{ stock.produit.reference }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark">{{ stock.emplacement }}</span>
+                            <br>
+                            <small class="text-muted">{{ stock.entrepot.nom }}</small>
+                        </td>
+                        
+                        {# --- C'EST ICI LA PARTIE IMPORTANTE (Les Boutons) --- #}
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <!-- Bouton MOINS -->
+                                <a href="{{ path('app_stock_mouvement', {'id': stock.id, 'sens': 'moins'}) }}" 
+                                   class="btn btn-outline-danger fw-bold">
+                                   -
+                                </a>
+
+                                <!-- Affichage du chiffre -->
+                                <button type="button" class="btn btn-light disabled text-dark fw-bold" style="width: 60px;">
+                                    {{ stock.quantite }}
+                                </button>
+
+                                <!-- Bouton PLUS -->
+                                <a href="{{ path('app_stock_mouvement', {'id': stock.id, 'sens': 'plus'}) }}" 
+                                   class="btn btn-outline-success fw-bold">
+                                   +
+                                </a>
+                            </div>
+                        </td>
+
+                        <td>
+                            <a href="{{ path('app_stock_show', {'id': stock.id}) }}" class="btn btn-sm btn-link">Voir</a>
+                            <a href="{{ path('app_stock_edit', {'id': stock.id}) }}" class="btn btn-sm btn-link text-warning">Modifier</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">Aucun stock pour le moment.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}

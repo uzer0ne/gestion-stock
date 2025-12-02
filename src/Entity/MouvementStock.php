@@ -27,6 +27,9 @@ class MouvementStock
     #[ORM\Column]
     private ?\DateTimeImmutable $dateMouvement = null;
 
+    #[ORM\Column(length: 50)]
+    private ?string $type = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +79,18 @@ class MouvementStock
     public function setDateMouvement(\DateTimeImmutable $dateMouvement): static
     {
         $this->dateMouvement = $dateMouvement;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }
