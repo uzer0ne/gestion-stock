@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bon de Mouvement</title>
+    <style>
+        body { font-family: sans-serif; font-size: 14px; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #444; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        
+        .info-box { width: 100%; margin-bottom: 30px; }
+        .info-box td { vertical-align: top; width: 50%; }
+        
+        .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .details-table th { background-color: #f2f2f2; border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .details-table td { border: 1px solid #ddd; padding: 10px; }
+        
+        .stamp { margin-top: 50px; text-align: right; font-weight: bold; color: #888; border: 3px solid #ccc; padding: 10px; display: inline-block; transform: rotate(-10deg); }
+        
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 10px; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo"> GESTION STOCK</div>
+        <p>Bon de Mouvement Officiel</p>
+    </div>
+
+    <table class="info-box">
+        <tr>
+            <td>
+                <strong>Émis le :</strong> {{ mouvement.dateMouvement|date('d/m/Y à H:i') }}<br>
+                <strong>N° Mouvement :</strong> #{{ mouvement.id }}<br>
+                <strong>Type :</strong> {{ mouvement.type }}
+            </td>
+            <td style="text-align: right;">
+                <strong>Entrepôt concerné :</strong><br>
+                {{ mouvement.entrepot.nom }}<br>
+                {{ mouvement.entrepot.ville }}
+            </td>
+        </tr>
+    </table>
+
+    <h3>Détail du produit</h3>
+
+    <table class="details-table">
+        <thead>
+            <tr>
+                <th>Référence</th>
+                <th>Désignation</th>
+                <th>Quantité</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ mouvement.produit.reference }}</td>
+                <td>
+                    {{ mouvement.produit.nom }}<br>
+                    <small>Fournisseur : {{ mouvement.produit.fournisseur ? mouvement.produit.fournisseur.nom : 'N/A' }}</small>
+                </td>
+                <td style="font-size: 16px; font-weight: bold;">
+                    {% if mouvement.quantite > 0 %}+{% endif %}{{ mouvement.quantite }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="text-align: right; margin-top: 40px;">
+        <div class="stamp">
+            {% if mouvement.quantite > 0 %}
+                CONFIRMÉ<br>ENTRÉE
+            {% else %}
+                VALIDÉ<br>SORTIE
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="footer">
+        Document généré automatiquement par l'application Gestion Stock v1.0
+    </div>
+
+</body>
+</html>

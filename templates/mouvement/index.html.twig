@@ -18,6 +18,7 @@
                         <th>Type</th>
                         <th>Quantité</th>
                         <th>Entrepôt</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +47,11 @@
                         </td>
 
                         <td>{{ mouv.entrepot.nom }}</td>
+                        <td>
+                            <a href="{{ path('app_mouvement_pdf', {'id': mouv.id}) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                                🖨️ PDF
+                            </a>
+                        </td>
                     </tr>
                 {% else %}
                     <tr>
