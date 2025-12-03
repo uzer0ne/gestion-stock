@@ -2,6 +2,12 @@
 
 {% block title %}Liste des Produits{% endblock %}
 
+{# On ajoute le CSS de DataTables juste pour cette page #}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
 {% block body %}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>📦 Nos Produits</h1>
@@ -12,9 +18,11 @@
 
     <div class="card shadow">
         <div class="card-body">
-            <table class="table table-striped table-hover">
+            <!-- J'ai ajouté l'ID "table-produits" pour que le JS le retrouve -->
+            <table id="table-produits" class="table table-striped table-hover align-middle" style="width:100%">
                 <thead class="table-dark">
                     <tr>
+                        <th style="width: 80px;">Image</th>
                         <th>Id</th>
                         <th>Nom</th>
                         <th>Référence</th>
@@ -22,24 +30,45 @@
                         <th>Catégorie</th>
                         <th>Fournisseur</th>
                         <th>Actions</th>
-                        <th>Image</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for produit in produits %}
                     <tr>
-                        <td>{{ produit.id }}</td>
-                        <td><strong>{{ produit.nom }}</strong></td>
-                        <td><span class="badge bg-secondary">{{ produit.reference }}</span></td>
-                        <td>{{ produit.prixVente }} €</td>
+                        <!-- 1. IMAGE -->
                         <td>
-                            {# Affiche le nom de la catégorie s'il y en a une #}
+                            {% if produit.imageName %}
+                                <img src="{{ asset('uploads/products/' ~ produit.imageName) }}" 
+                                    alt="{{ produit.nom }}" 
+                                    class="rounded shadow-sm"
+                                    style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                                <span class="text-muted fs-4">📷</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- 2. ID -->
+                        <td>{{ produit.id }}</td>
+
+                        <!-- 3. NOM -->
+                        <td><strong>{{ produit.nom }}</strong></td>
+
+                        <!-- 4. REF -->
+                        <td><span class="badge bg-secondary">{{ produit.reference }}</span></td>
+
+                        <!-- 5. PRIX -->
+                        <td>{{ produit.prixVente }} €</td>
+
+                        <!-- 6. CATEGORIE -->
+                        <td>
                             {% if produit.categorie %}
                                 <span class="badge bg-info text-dark">{{ produit.categorie.nom }}</span>
                             {% else %}
                                 <span class="text-muted">Aucune</span>
                             {% endif %}
                         </td>
+
+                        <!-- 7. FOURNISSEUR -->
                         <td>
                             {% if produit.fournisseur %}
                                 <span class="badge bg-warning text-dark">
@@ -49,27 +78,40 @@
                                 <span class="text-muted text-small">Non assigné</span>
                             {% endif %}
                         </td>
+
+                        <!-- 8. ACTIONS -->
                         <td>
                             <a href="{{ path('app_produit_show', {'id': produit.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
                             <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-sm btn-outline-warning">Modifier</a>
                         </td>
-                        <td>
-                            {% if produit.imageName %}
-                                <img src="{{ asset('uploads/products/' ~ produit.imageName) }}" 
-                                    alt="{{ produit.nom }}" 
-                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
-                            {% else %}
-                                <span class="text-muted">📷</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center">Aucun produit trouvé</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+{% endblock %}
+
+{# On ajoute le JS de DataTables à la fin #}
+{% block javascripts %}
+    {{ parent() }}
+    <!-- jQuery (Nécessaire pour DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#table-produits').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json'
+                },
+                // On désactive le tri sur la colonne Image et Actions (colonnes 0 et 7)
+                columnDefs: [
+                    { orderable: false, targets: [0, 7] }
+                ]
+            });
+        });
+    </script>
 {% endblock %}

@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/produit')]
 final class ProduitController extends AbstractController
@@ -128,5 +129,40 @@ final class ProduitController extends AbstractController
         }
 
         return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/recherche/ajax', name: 'app_produit_recherche_ajax', methods: ['GET'])]
+    public function rechercheAjax(Request $request, ProduitRepository $produitRepository): JsonResponse
+    {
+        $term = $request->query->get('term'); // Ce que l'utilisateur a tapé
+
+        if (!$term) {
+            return new JsonResponse([]);
+        }
+
+        // On cherche dans la BDD (Nom ou Référence)
+        // Note: Tu devras peut-être adapter ta méthode findBy dans le Repository si tu veux chercher dans les deux
+        // Pour l'instant, on fait simple : on cherche par nom
+        $produits = $produitRepository->createQueryBuilder('p')
+            ->where('p.nom LIKE :term')
+            ->orWhere('p.reference LIKE :term')
+            ->setParameter('term', '%' . $term . '%')
+            ->getQuery()
+            ->getResult();
+
+        // On transforme les objets en tableau simple pour le JavaScript
+        $results = [];
+        foreach ($produits as $p) {
+            $results[] = [
+                'id' => $p->getId(),
+                'nom' => $p->getNom(),
+                'reference' => $p->getReference(),
+                // On prépare l'URL de l'image si elle existe
+                'image' => $p->getImageName() ? '/uploads/products/' . $p->getImageName() : null,
+                'url_show' => $this->generateUrl('app_produit_show', ['id' => $p->getId()])
+            ];
+        }
+
+        return new JsonResponse($results);
     }
 }
