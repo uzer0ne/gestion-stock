@@ -1,26 +1,103 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Categorie{% endblock %}
+{% block title %}Détails de la catégorie : {{ categorie.nom }}{% endblock %}
 
 {% block body %}
-    <h1>Categorie</h1>
+<div class="container py-5">
+    
+    {# En-tête avec navigation #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ path('app_categorie_index') }}">Catégories</a></li>
+                    <li class="breadcrumb-item active">Détails</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold m-0 text-dark">
+                <i class="bi bi-tag-fill text-primary me-2"></i>{{ categorie.nom }}
+            </h1>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_categorie_index') }}" class="btn btn-light border shadow-sm">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <a href="{{ path('app_categorie_edit', {'id': categorie.id}) }}" class="btn btn-primary shadow-sm">
+                <i class="bi bi-pencil-square me-2"></i>Modifier
+            </a>
+        </div>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ categorie.id }}</td>
-            </tr>
-            <tr>
-                <th>Nom</th>
-                <td>{{ categorie.nom }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="row g-4">
+        {# Colonne Infos #}
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Propriétés</h5>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase fw-bold">Identifiant unique</label>
+                        <p class="fs-5 font-monospace mb-0">#{{ categorie.id }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted small text-uppercase fw-bold">Nom de la catégorie</label>
+                        <p class="fs-5 mb-0">{{ categorie.nom }}</p>
+                    </div>
 
-    <a href="{{ path('app_categorie_index') }}">back to list</a>
+                    <hr>
 
-    <a href="{{ path('app_categorie_edit', {'id': categorie.id}) }}">edit</a>
+                    <div class="mt-4">
+                        <h6 class="text-danger fw-bold mb-2 small text-uppercase">Actions critiques</h6>
+                        {{ include('categorie/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    {{ include('categorie/_delete_form.html.twig') }}
+        {# Colonne Liste des produits associés (Le "Wow" factor pour le jury) #}
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold text-dark">
+                        <i class="bi bi-box-seam me-2 text-primary"></i>Produits dans cette catégorie
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Référence</th>
+                                    <th>Nom</th>
+                                    <th class="text-end pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {# On suppose que ta relation s'appelle 'produits' dans ton entité Categorie #}
+                            {% for produit in categorie.produits %}
+                                <tr>
+                                    <td class="ps-4 font-monospace small text-primary">{{ produit.reference }}</td>
+                                    <td class="fw-semibold">{{ produit.nom }}</td>
+                                    <td class="text-end pe-4">
+                                        <a href="{{ path('app_produit_show', {'id': produit.id}) }}" class="btn btn-sm btn-light border">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted italic">
+                                        Aucun produit n'est encore lié à cette catégorie.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

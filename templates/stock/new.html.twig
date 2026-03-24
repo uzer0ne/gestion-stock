@@ -1,11 +1,41 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Stock{% endblock %}
+{% block title %}Nouvel Emplacement Stock{% endblock %}
 
 {% block body %}
-    <h1>Create new Stock</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            {# Navigation haute #}
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_stock_index') }}">Stocks</a></li>
+                    <li class="breadcrumb-item active">Nouvel emplacement</li>
+                </ol>
+            </nav>
 
-    {{ include('stock/_form.html.twig') }}
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-primary py-3">
+                    <h5 class="card-title mb-0 text-white fw-bold">
+                        <i class="bi bi-box-seam me-2"></i>Initialiser un Stock
+                    </h5>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <p class="text-muted mb-4 small">Remplissez les informations ci-dessous pour affecter un produit à une zone de stockage précise.</p>
 
-    <a href="{{ path('app_stock_index') }}">back to list</a>
+                    {{ include('stock/_form.html.twig', {
+                        'button_label': 'Créer l\'entrée de stock',
+                        'button_class': 'btn btn-primary btn-lg w-100 shadow-sm fw-bold'
+                    }) }}
+
+                    <div class="text-center mt-4">
+                        <a href="{{ path('app_stock_index') }}" class="text-decoration-none text-muted small">
+                            <i class="bi bi-x-circle me-1"></i> Annuler et revenir à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

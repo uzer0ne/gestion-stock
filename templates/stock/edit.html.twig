@@ -1,13 +1,52 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Stock{% endblock %}
+{% block title %}Modifier Stock #{{ stock.id }}{% endblock %}
 
 {% block body %}
-    <h1>Edit Stock</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h1 class="h2 fw-bold mb-0">Modifier l'emplacement</h1>
+                    <p class="text-muted mb-0">ID de transaction : #{{ stock.id }}</p>
+                </div>
+                <a href="{{ path('app_stock_index') }}" class="btn btn-light border shadow-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Retour
+                </a>
+            </div>
 
-    {{ include('stock/_form.html.twig', {'button_label': 'Update'}) }}
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title mb-0 fw-bold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Mise à jour des quantités
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {# Rappel du produit #}
+                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>
+                            Modification du stock pour : <strong>{{ stock.produit.nom }}</strong> 
+                            <code class="ms-2">({{ stock.produit.reference }})</code>
+                        </div>
+                    </div>
 
-    <a href="{{ path('app_stock_index') }}">back to list</a>
+                    {{ include('stock/_form.html.twig', {
+                        'button_label': 'Enregistrer les modifications',
+                        'button_class': 'btn btn-primary btn-lg w-100 shadow-sm fw-bold'
+                    }) }}
+                </div>
+            </div>
 
-    {{ include('stock/_delete_form.html.twig') }}
+            {# Zone de suppression en bas de page pour plus de sécurité #}
+            <div class="card border-light bg-light">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Cet emplacement n'existe plus ou est une erreur ?</span>
+                    {{ include('stock/_delete_form.html.twig') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

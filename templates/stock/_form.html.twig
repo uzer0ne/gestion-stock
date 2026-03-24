@@ -1,4 +1,21 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+    <div class="row g-3">
+        <div class="col-md-12 mb-3">
+            {{ form_label(form.produit, 'Sélectionner le produit', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.produit, {'attr': {'class': 'form-select select2'}}) }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form_label(form.emplacement, 'Zone / Allée / Étagère', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.emplacement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: A1-R4'}}) }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form_label(form.quantite, 'Quantité initiale', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+            {{ form_widget(form.quantite, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="col-12 mt-4 text-center">
+            <button class="btn btn-primary btn-lg w-100 shadow-sm">
+                <i class="bi bi-check2-circle me-2"></i>{{ button_label|default('Enregistrer le stock') }}
+            </button>
+        </div>
+    </div>
 {{ form_end(form) }}

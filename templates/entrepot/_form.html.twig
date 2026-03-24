@@ -1,4 +1,21 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+    <div class="row g-4">
+        <div class="col-md-7">
+            {{ form_label(form.nom, 'Nom de l\'entrepôt', {'label_attr': {'class': 'form-label fw-bold small text-uppercase text-muted'}}) }}
+            {{ form_widget(form.nom, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Ex: Entrepôt Nord / Hub Logistique'}}) }}
+            {{ form_errors(form.nom) }}
+        </div>
+        
+        <div class="col-md-5">
+            {{ form_label(form.ville, 'Ville', {'label_attr': {'class': 'form-label fw-bold small text-uppercase text-muted'}}) }}
+            {{ form_widget(form.ville, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Ex: Lyon'}}) }}
+            {{ form_errors(form.ville) }}
+        </div>
+
+        <div class="col-12 mt-4">
+            <button class="{{ button_class|default('btn btn-primary btn-lg w-100 shadow-sm fw-bold') }}">
+                <i class="bi bi-check2-circle me-2"></i>{{ button_label|default('Enregistrer') }}
+            </button>
+        </div>
+    </div>
 {{ form_end(form) }}

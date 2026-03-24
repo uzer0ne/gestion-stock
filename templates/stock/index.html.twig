@@ -1,87 +1,97 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion du Stock{% endblock %}
+{% block title %}État des Stocks{% endblock %}
 
 {% block body %}
+<div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>🏭 État du Stock</h1>
-        <a href="{{ path('app_stock_new') }}" class="btn btn-primary">
-            + Ajouter du Stock
+        <div>
+            <h1 class="h2 fw-bold mb-0">🏭 État du Stock</h1>
+            <p class="text-muted">Suivi des quantités et des emplacements en temps réel.</p>
+        </div>
+        <a href="{{ path('app_stock_new') }}" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="bi bi-plus-lg me-2"></i>Ajouter du Stock
         </a>
     </div>
 
-    {# --- Zone pour afficher les messages de confirmation (Vert/Rouge) --- #}
+    {# Messages flash de confirmation #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label }}">
+            <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} alert-dismissible fade show shadow-sm border-0" role="alert">
                 {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endfor %}
 
-    <div class="card shadow">
-        <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase small fw-bold text-muted">
                     <tr>
-                        <th>Produit</th>
-                        <th>Emplacement</th>
-                        <th class="text-center">Quantité (Scan)</th>
-                        <th>Actions</th>
+                        <th class="ps-4 py-3">Produit & Référence</th>
+                        <th class="py-3 text-center">Emplacement</th>
+                        <th class="py-3 text-center" style="width: 200px;">Quantité (Contrôle)</th>
+                        <th class="py-3 text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for stock in stocks %}
-                    {# On calcule si c'est critique : Est-ce que la quantité est <= au seuil du produit ? #}
                     {% set estCritique = stock.quantite <= stock.produit.seuilAlerte %}
-
-                    <tr class="{{ estCritique ? 'table-danger border-danger' : '' }}">
-                        <td>
-                            <strong>{{ stock.produit.nom }}</strong>
-                            
-                            {# Si critique, on ajoute un petit badge d'alerte #}
-                            {% if estCritique %}
-                                <span class="badge bg-danger ms-2">⚠️ STOCK BAS</span>
-                            {% endif %}
-                            
-                            <br>
-                            <small class="text-muted">{{ stock.produit.reference }}</small>
+                    <tr class="{{ estCritique ? 'table-warning' : '' }}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ stock.produit.nom }}</div>
+                                    <small class="text-primary font-monospace">{{ stock.produit.reference }}</small>
+                                </div>
+                                {% if estCritique %}
+                                    <span class="badge bg-danger ms-3 pulse-animation">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> STOCK BAS
+                                    </span>
+                                {% endif %}
+                            </div>
                         </td>
-                        
-                        {# --- C'EST ICI LA PARTIE IMPORTANTE (Les Boutons) --- #}
                         <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <!-- Bouton MOINS -->
+                            <span class="badge bg-light text-dark border px-3 py-2">
+                                <i class="bi bi-geo-alt-fill text-secondary me-1"></i>{{ stock.emplacement }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group shadow-sm" role="group">
                                 <a href="{{ path('app_stock_mouvement', {'id': stock.id, 'sens': 'moins'}) }}" 
-                                   class="btn btn-outline-danger fw-bold">
-                                   -
-                                </a>
-
-                                <!-- Affichage du chiffre -->
-                                <button type="button" class="btn btn-light disabled text-dark fw-bold" style="width: 60px;">
+                                   class="btn btn-sm btn-outline-danger px-3 fw-bold">-</a>
+                                
+                                <button type="button" class="btn btn-sm btn-white disabled fw-bold text-dark" style="min-width: 50px; background: white;">
                                     {{ stock.quantite }}
                                 </button>
 
-                                <!-- Bouton PLUS -->
                                 <a href="{{ path('app_stock_mouvement', {'id': stock.id, 'sens': 'plus'}) }}" 
-                                   class="btn btn-outline-success fw-bold">
-                                   +
-                                </a>
+                                   class="btn btn-sm btn-outline-success px-3 fw-bold">+</a>
                             </div>
                         </td>
-
-                        <td>
-                            <a href="{{ path('app_stock_show', {'id': stock.id}) }}" class="btn btn-sm btn-link">Voir</a>
-                            <a href="{{ path('app_stock_edit', {'id': stock.id}) }}" class="btn btn-sm btn-link text-warning">Modifier</a>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <a href="{{ path('app_stock_show', {'id': stock.id}) }}" class="btn btn-sm btn-light border" title="Voir">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ path('app_stock_edit', {'id': stock.id}) }}" class="btn btn-sm btn-light border text-warning" title="Modifier">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="4" class="text-center">Aucun stock pour le moment.</td>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-box-seam display-4 d-block mb-3"></i>
+                            Aucun stock enregistré.
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 {% endblock %}

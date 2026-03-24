@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/produit')]
 final class ProduitController extends AbstractController
@@ -26,6 +27,7 @@ final class ProduitController extends AbstractController
     }
 
     #[Route('/new', name: 'app_produit_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MAGASINIER')] // Seul le magasinier/admin peut créer un produit
     public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $produit = new Produit();
@@ -39,13 +41,10 @@ final class ProduitController extends AbstractController
 
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                // On nettoie le nom du fichier (supprime les accents, espaces...)
                 $safeFilename = $slugger->slug($originalFilename);
-                // On ajoute un ID unique pour éviter d'écraser une image existante
                 $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
 
                 try {
-                    // On déplace le fichier dans le dossier configuré
                     $imageFile->move(
                         $this->getParameter('produits_directory'),
                         $newFilename
@@ -54,13 +53,14 @@ final class ProduitController extends AbstractController
                     // Gérer l'erreur si besoin
                 }
 
-                // On enregistre seulement le NOM du fichier dans la base
                 $produit->setImageName($newFilename);
             }
             // --- FIN GESTION IMAGE ---
+            
             $entityManager->persist($produit);
             $entityManager->flush();
-
+            
+            $this->addFlash('success', 'Nouveau produit créé avec succès.');
             return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -79,6 +79,7 @@ final class ProduitController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_produit_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MAGASINIER')] // Seul le magasinier/admin peut modifier
     public function edit(Request $request, Produit $produit, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(ProduitType::class, $produit);
@@ -90,13 +91,10 @@ final class ProduitController extends AbstractController
 
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                // On nettoie le nom du fichier (supprime les accents, espaces...)
                 $safeFilename = $slugger->slug($originalFilename);
-                // On ajoute un ID unique pour éviter d'écraser une image existante
                 $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
 
                 try {
-                    // On déplace le fichier dans le dossier configuré
                     $imageFile->move(
                         $this->getParameter('produits_directory'),
                         $newFilename
@@ -105,12 +103,13 @@ final class ProduitController extends AbstractController
                     // Gérer l'erreur si besoin
                 }
 
-                // On enregistre seulement le NOM du fichier dans la base
                 $produit->setImageName($newFilename);
             }
             // --- FIN GESTION IMAGE ---
+            
             $entityManager->flush();
 
+            $this->addFlash('success', 'Produit mis à jour avec succès.');
             return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -121,11 +120,13 @@ final class ProduitController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_produit_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')] // SEUL l'administrateur peut supprimer un produit
     public function delete(Request $request, Produit $produit, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$produit->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($produit);
             $entityManager->flush();
+            $this->addFlash('success', 'Produit supprimé avec succès.');
         }
 
         return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
@@ -134,15 +135,12 @@ final class ProduitController extends AbstractController
     #[Route('/recherche/ajax', name: 'app_produit_recherche_ajax', methods: ['GET'])]
     public function rechercheAjax(Request $request, ProduitRepository $produitRepository): JsonResponse
     {
-        $term = $request->query->get('term'); // Ce que l'utilisateur a tapé
+        $term = $request->query->get('term'); 
 
         if (!$term) {
             return new JsonResponse([]);
         }
 
-        // On cherche dans la BDD (Nom ou Référence)
-        // Note: Tu devras peut-être adapter ta méthode findBy dans le Repository si tu veux chercher dans les deux
-        // Pour l'instant, on fait simple : on cherche par nom
         $produits = $produitRepository->createQueryBuilder('p')
             ->where('p.nom LIKE :term')
             ->orWhere('p.reference LIKE :term')
@@ -150,19 +148,45 @@ final class ProduitController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // On transforme les objets en tableau simple pour le JavaScript
         $results = [];
         foreach ($produits as $p) {
             $results[] = [
                 'id' => $p->getId(),
                 'nom' => $p->getNom(),
                 'reference' => $p->getReference(),
-                // On prépare l'URL de l'image si elle existe
                 'image' => $p->getImageName() ? '/uploads/products/' . $p->getImageName() : null,
                 'url_show' => $this->generateUrl('app_produit_show', ['id' => $p->getId()])
             ];
         }
 
         return new JsonResponse($results);
+    }
+
+    #[Route('/{id}/clone', name: 'app_produit_clone', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MAGASINIER')] // Le magasinier peut cloner des produits
+    public function clone(Produit $produitOriginal, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $nouveauProduit = clone $produitOriginal;
+
+        $nouveauProduit->setNom($produitOriginal->getNom() . ' (Copie)');
+        $nouveauProduit->setReference($produitOriginal->getReference() . '-COPY');
+
+        $form = $this->createForm(ProduitType::class, $nouveauProduit);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($nouveauProduit);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Le produit a été dupliqué avec succès. Vous pouvez maintenant l\'ajuster.');
+
+            return $this->redirectToRoute('app_produit_index');
+        }
+
+        return $this->render('produit/new.html.twig', [
+            'produit' => $nouveauProduit,
+            'form' => $form,
+            'is_clone' => true 
+        ]);
     }
 }

@@ -1,13 +1,79 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Produit{% endblock %}
+{% block title %}Modifier le produit : {{ produit.nom }}{% endblock %}
 
 {% block body %}
-    <h1>Edit Produit</h1>
+<div class="container py-5">
 
-    {{ include('produit/_form.html.twig', {'button_label': 'Update'}) }}
+    {# Fil d'ariane / En-tête #}
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0">Modifier le produit</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Stock</a></li>
+                    <li class="breadcrumb-item active">Édition #{{ produit.id }}</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{{ path('app_produit_index') }}" class="btn btn-light border shadow-sm px-4">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
 
-    <a href="{{ path('app_produit_index') }}">back to list</a>
+    <div class="row g-4">
+        {# Colonne de gauche : Formulaire #}
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="card-title mb-0 fw-semibold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Informations générales
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {{ include('produit/_form.html.twig', {
+                        'button_label': 'Mettre à jour le produit',
+                        'button_class': 'btn btn-primary btn-lg w-100 fw-bold'
+                    }) }}
+                </div>
+            </div>
+        </div>
 
-    {{ include('produit/_delete_form.html.twig') }}
+        {# Colonne de droite : Widgets & Actions critiques #}
+        <div class="col-lg-4">
+            {# Widget Récapitulatif #}
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold text-muted text-uppercase small mb-3">Récapitulatif</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Référence :</span>
+                        <span class="badge bg-light text-dark border">{{ produit.reference }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Catégorie :</span>
+                        <span class="text-primary">{{ produit.categorie ? produit.categorie.nom : 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# --- SÉCURITÉ : Zone de Danger visible uniquement par l'Admin --- #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="card border-danger shadow-sm rounded-3 bg-light bg-gradient">
+                    <div class="card-body p-4">
+                        <h6 class="text-danger fw-bold mb-2">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Zone de danger
+                        </h6>
+                        <p class="small text-muted mb-3">
+                            La suppression d'un produit supprimera également les données de stock associées dans les entrepôts.
+                        </p>
+                        <div class="d-grid">
+                            {{ include('produit/_delete_form.html.twig') }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
 {% endblock %}

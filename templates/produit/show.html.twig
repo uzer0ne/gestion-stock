@@ -59,7 +59,6 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                                {# On ajoute le seuil d'alerte si tu l'as dans ton entité #}
                                 {% if produit.seuilAlerte is defined %}
                                 <tr>
                                     <th class="ps-3">Seuil d'alerte</th>
@@ -71,16 +70,24 @@
                     </div>
                 </div>
 
-                {# --- BOUTONS D'ACTION --- #}
+                {# --- BOUTONS D'ACTION SÉCURISÉS --- #}
                 <div class="mt-4 d-flex gap-2">
+                    {# Bouton Retour : visible par tous #}
                     <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
                         ← Retour à la liste
                     </a>
-                    <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-warning">
-                        ✏️ Modifier
-                    </a>
-                    {# Le bouton supprimer est inclus via le formulaire #}
-                    {{ include('produit/_delete_form.html.twig') }}
+                    
+                    {# Bouton Modifier : visible uniquement pour Magasinier et Admin #}
+                    {% if is_granted('ROLE_MAGASINIER') %}
+                        <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-warning">
+                            ✏️ Modifier
+                        </a>
+                    {% endif %}
+
+                    {# Formulaire de Suppression : visible uniquement pour l'Admin #}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        {{ include('produit/_delete_form.html.twig') }}
+                    {% endif %}
                 </div>
             </div>
         </div>

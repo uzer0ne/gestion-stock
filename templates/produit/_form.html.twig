@@ -1,4 +1,67 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+    
+    <div class="row g-3">
+        {# Champ Nom du Produit #}
+        <div class="col-md-8">
+            {{ form_label(form.nom, 'Nom du produit', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: iPhone 15 Pro'}}) }}
+            <div class="form-text">Le nom commercial visible par les clients.</div>
+            {{ form_errors(form.nom) }}
+        </div>
+
+        {# Champ Référence #}
+        <div class="col-md-4">
+            {{ form_label(form.reference, 'Référence (SKU)', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.reference, {'attr': {'class': 'form-control font-monospace', 'placeholder': 'REF-0000'}}) }}
+            {{ form_errors(form.reference) }}
+        </div>
+
+        {# Séparateur visuel #}
+        <div class="col-12"><hr class="my-2 text-transparent"></div>
+
+        {# Champ Catégorie #}
+        <div class="col-md-6">
+            {{ form_label(form.categorie, 'Catégorie', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+            {{ form_errors(form.categorie) }}
+        </div>
+
+        {# Champ Fournisseur #}
+        <div class="col-md-6">
+            {{ form_label(form.fournisseur, 'Fournisseur principal', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.fournisseur, {'attr': {'class': 'form-select'}}) }}
+            {{ form_errors(form.fournisseur) }}
+        </div>
+
+        {# Champ Prix #}
+        <div class="col-md-6">
+            {{ form_label(form.prixVente, 'Prix de vente (€)', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            <div class="input-group">
+                {{ form_widget(form.prixVente, {'attr': {'class': 'form-control', 'step': '0.01'}}) }}
+                <span class="input-group-text">€ TTC</span>
+            </div>
+            {{ form_errors(form.prixVente) }}
+        </div>
+
+        {# Champ Seuil d'alerte #}
+        <div class="col-md-6">
+            {{ form_label(form.seuilAlerte, 'Seuil d\'alerte stock', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.seuilAlerte, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 5'}}) }}
+            {{ form_errors(form.seuilAlerte) }}
+        </div>
+        <div class="col-12 mt-3">
+            {{ form_label(form.imageFile, 'Image du produit (JPG/PNG)', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+            <div class="form-text">Laissez vide pour conserver l'image actuelle.</div>
+            {{ form_errors(form.imageFile) }}
+        </div>
+
+        {# Bouton de validation #}
+        <div class="col-12 mt-4">
+            <button class="{{ button_class|default('btn btn-primary w-100') }}">
+                <i class="bi bi-check-circle-fill me-2"></i>{{ button_label|default('Enregistrer') }}
+            </button>
+        </div>
+    </div>
+
 {{ form_end(form) }}
