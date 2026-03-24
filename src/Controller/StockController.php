@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\MouvementStock;
+use App\Service\StockAlertService; // <-- N'oublie pas l'import de ton nouveau service !
 
 #[Route('/stock')]
 final class StockController extends AbstractController
@@ -52,13 +53,27 @@ final class StockController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_stock_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response
+    public function edit(
+        Request $request, 
+        Stock $stock, 
+        EntityManagerInterface $entityManager,
+        StockAlertService $alertService // <-- On injecte le service ici aussi au cas où on modifie via le formulaire
+    ): Response
     {
         $form = $this->createForm(StockType::class, $stock);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+
+            // Vérification du seuil après modification manuelle
+            $produit = $stock->getProduit();
+            if ($produit->getSeuilAlerte() !== null && $stock->getQuantite() <= $produit->getSeuilAlerte()) {
+                $alertService->sendAlertEmail($stock);
+                $this->addFlash('warning', '⚠️ Le stock est critique. Un email d\'alerte a été envoyé.');
+            } else {
+                $this->addFlash('success', 'Stock modifié avec succès.');
+            }
 
             return $this->redirectToRoute('app_stock_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -79,11 +94,13 @@ final class StockController extends AbstractController
 
         return $this->redirectToRoute('app_stock_index', [], Response::HTTP_SEE_OTHER);
     }
+
     #[Route('/stock/mouvement/{id}/{sens}', name: 'app_stock_mouvement', methods: ['GET'])]
     public function mouvement(
         Stock $stock, 
         string $sens, 
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        StockAlertService $alertService // <-- ON INJECTE LE SERVICE D'ALERTE ICI
     ): Response
     {
         // 1. Déterminer si on ajoute ou on retire
@@ -115,8 +132,22 @@ final class StockController extends AbstractController
         $entityManager->persist($mouvement); // Prépare le mouvement
         $entityManager->flush();             // Envoie tout en base (Stock + Mouvement)
 
-        // 5. Petit message de succès
-        $this->addFlash('success', 'Stock mis à jour avec succès !');
+        // 5. VÉRIFICATION DU SEUIL D'ALERTE
+        $produit = $stock->getProduit();
+        
+        // Si le produit a un seuil défini ET que le nouveau stock est inférieur ou égal à ce seuil
+        if ($produit->getSeuilAlerte() !== null && $nouveauStock <= $produit->getSeuilAlerte()) {
+            
+            // On envoie l'email
+            $alertService->sendAlertEmail($stock);
+            
+            // Message de succès avec un avertissement
+            $this->addFlash('warning', 'Stock mis à jour (-1). ⚠️ ALERTE : Le seuil critique est atteint, un email a été envoyé !');
+            
+        } else {
+            // 5bis. Petit message de succès classique si tout va bien
+            $this->addFlash('success', 'Stock mis à jour avec succès !');
+        }
 
         // 6. Retour à la liste
         return $this->redirectToRoute('app_stock_index');
