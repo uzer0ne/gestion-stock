@@ -6,9 +6,12 @@
     <div class="container mt-4">
         
         <div class="row">
-            {# --- COLONNE GAUCHE : L'IMAGE --- #}
+            
+            {# --- COLONNE GAUCHE : L'IMAGE & LE QR CODE --- #}
             <div class="col-md-4 text-center mb-4">
-                <div class="card shadow border-0">
+                
+                {# 1. La carte de l'image du produit #}
+                <div class="card shadow border-0 mb-3">
                     <div class="card-body">
                         {% if produit.imageName %}
                             <img src="{{ asset('uploads/products/' ~ produit.imageName) }}" 
@@ -23,7 +26,29 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {# 2. LE NOUVEAU WIDGET QR CODE #}
+                <div class="card shadow-sm border-0 bg-light">
+                    <div class="card-body text-center p-4">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-3">
+                            <i class="bi bi-qr-code-scan text-primary me-2"></i>Scan Mobile
+                        </h6>
+                        
+                        {# qr_code_data_uri() génère l'image instantanément #}
+                        {# url() au lieu de path() génère le lien complet (http://...) pour le mobile #}
+                        <img src="{{ qr_code_data_uri(url('app_produit_show', {'id': produit.id})) }}" 
+                             alt="QR Code {{ produit.reference }}" 
+                             class="img-thumbnail border-0 shadow-sm rounded-3 mb-2" 
+                             style="width: 140px; height: 140px;">
+                        
+                        <div class="small text-muted mt-2">
+                            Réf: <code class="fw-bold text-dark">{{ produit.reference }}</code>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+            {# --- FIN COLONNE GAUCHE --- #}
 
             {# --- COLONNE DROITE : LES INFOS --- #}
             <div class="col-md-8">
