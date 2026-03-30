@@ -113,8 +113,123 @@
                     {% if is_granted('ROLE_ADMIN') %}
                         {{ include('produit/_delete_form.html.twig') }}
                     {% endif %}
+                    {# Bouton pour ouvrir le simulateur #}
+                    <button type="button" class="btn btn-outline-info w-100 mt-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#wilsonModal">
+                        <i class="fa-solid fa-calculator me-2"></i> Simulateur de Wilson (QEC)
+                    </button>
+
+                    {# La Modale Bootstrap du Simulateur #}
+                    <div class="modal fade" id="wilsonModal" tabindex="-1" aria-labelledby="wilsonModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title" id="wilsonModalLabel">
+                                <i class="fa-solid fa-chart-line me-2"></i> Simulateur : Quantité Économique
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <p class="small text-muted mb-4">
+                                La formule de Wilson permet de calculer la quantité optimale à commander pour minimiser le coût total de gestion des stocks du produit <strong>{{ produit.nom }}</strong>.
+                            </p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Demande annuelle estimée (D)</label>
+                                <div class="input-group">
+                                    <input type="number" id="wilson-d" class="form-control" placeholder="Ex: 1200" value="1000">
+                                    <span class="input-group-text">unités/an</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Coût de passation d'une commande (Cc)</label>
+                                <div class="input-group">
+                                    <input type="number" id="wilson-cc" class="form-control" placeholder="Ex: 50" value="45">
+                                    <span class="input-group-text">€ / commande</span>
+                                </div>
+                                <div class="form-text">Frais de transport, traitement administratif, etc.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Taux de possession annuel (t)</label>
+                                <div class="input-group">
+                                    <input type="number" id="wilson-t" class="form-control" placeholder="Ex: 15" value="15">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Pourcentage du prix de vente (Assurance, usure, loyer de l'entrepôt).</div>
+                            </div>
+
+                            {# Champ caché pour récupérer le prix du produit depuis Twig #}
+                            <input type="hidden" id="wilson-prix" value="{{ produit.prixVente }}">
+
+                            <div class="d-grid mt-4">
+                                <button type="button" class="btn btn-primary" onclick="calculerWilson()">Lancer la simulation</button>
+                            </div>
+
+                            {# Boîte de résultat (cachée par défaut) #}
+                            <div id="wilson-resultat-box" class="alert alert-success mt-4 d-none">
+                                <h6 class="alert-heading text-center fw-bold border-bottom border-success pb-2 mb-3">Résultats de la simulation :</h6>
+                                
+                                <div class="row text-center">
+                                    <div class="col-12 mb-3">
+                                        <span class="d-block text-muted small text-uppercase">Quantité Optimale par commande</span>
+                                        <span id="wilson-q" class="display-6 fw-bold text-success">0</span> <span class="fs-6">unités</span>
+                                    </div>
+                                    
+                                    <div class="col-6 border-end border-success">
+                                        <span class="d-block text-muted small text-uppercase">Cadence</span>
+                                        <span id="wilson-n" class="fs-4 fw-bold text-dark">0</span> <span class="small">commandes/an</span>
+                                    </div>
+                                    
+                                    <div class="col-6">
+                                        <span class="d-block text-muted small text-uppercase">Fréquence</span>
+                                        <span class="small">Tous les </span><span id="wilson-jours" class="fs-4 fw-bold text-dark">0</span> <span class="small">jours</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
     </div>
+    <script>
+    function calculerWilson() {
+        // 1. Récupération des valeurs saisies
+        let d = parseFloat(document.getElementById('wilson-d').value);
+        let cc = parseFloat(document.getElementById('wilson-cc').value);
+        let t = parseFloat(document.getElementById('wilson-t').value) / 100; // Conversion % en décimale
+        let prix = parseFloat(document.getElementById('wilson-prix').value);
+
+        // 2. Sécurité : vérifier que les champs sont remplis et cohérents
+        if (isNaN(d) || isNaN(cc) || isNaN(t) || d <= 0 || prix <= 0) {
+            alert("Veuillez remplir correctement toutes les valeurs avec des nombres positifs.");
+            return;
+        }
+
+        // 3. Calcul du Coût de possession unitaire (Cp = Prix * taux)
+        let cp = prix * t;
+
+        // 4. Application de la Formule de Wilson
+        let q = Math.sqrt((2 * d * cc) / cp);
+        let qArrondi = Math.ceil(q); // On arrondit à l'entier supérieur
+
+        // 5. Calculs de la fréquence
+        let nombreCommandes = d / qArrondi;
+        let joursEntreCommandes = 365 / nombreCommandes;
+
+        // 6. Affichage des résultats
+        document.getElementById('wilson-q').innerText = qArrondi;
+        
+        // toFixed(1) permet de garder 1 seul chiffre après la virgule
+        document.getElementById('wilson-n').innerText = nombreCommandes.toFixed(1); 
+        document.getElementById('wilson-jours').innerText = Math.round(joursEntreCommandes);
+        
+        document.getElementById('wilson-resultat-box').classList.remove('d-none');
+    }
+    </script>
 {% endblock %}
