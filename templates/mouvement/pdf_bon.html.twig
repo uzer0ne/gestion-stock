@@ -33,6 +33,7 @@
                 <strong>Émis le :</strong> {{ mouvement.dateMouvement|date('d/m/Y à H:i') }}<br>
                 <strong>N° Mouvement :</strong> #{{ mouvement.id }}<br>
                 <strong>Type :</strong> {{ mouvement.type }}
+                <strong>Opérateur :</strong> {{ mouvement.user ? mouvement.user.email : 'Généré par le système' }}
             </td>
             <td style="text-align: right;">
                 <strong>Entrepôt concerné :</strong><br>
@@ -47,6 +48,7 @@
     <table class="details-table">
         <thead>
             <tr>
+                <th style="width: 100px; text-align: center;">Image</th>
                 <th>Référence</th>
                 <th>Désignation</th>
                 <th>Quantité</th>
@@ -54,12 +56,21 @@
         </thead>
         <tbody>
             <tr>
+                <td style="text-align: center;">
+                    {# On vérifie si le produit a une image #}
+                    {% if mouvement.produit.imageName %}
+                        {# DomPDF a besoin du chemin absolu (imagePath) collé au nom de l'image (~) #}
+                        <img src="{{ imagePath ~ mouvement.produit.imageName }}" alt="Image" style="max-width: 80px; max-height: 80px; border-radius: 4px;">
+                    {% else %}
+                        <span style="color: #aaa; font-style: italic; font-size: 11px;">Sans image</span>
+                    {% endif %}
+                </td>
                 <td>{{ mouvement.produit.reference }}</td>
                 <td>
                     {{ mouvement.produit.nom }}<br>
                     <small>Fournisseur : {{ mouvement.produit.fournisseur ? mouvement.produit.fournisseur.nom : 'N/A' }}</small>
                 </td>
-                <td style="font-size: 16px; font-weight: bold;">
+                <td style="font-size: 16px; font-weight: bold; text-align: center;">
                     {% if mouvement.quantite > 0 %}+{% endif %}{{ mouvement.quantite }}
                 </td>
             </tr>

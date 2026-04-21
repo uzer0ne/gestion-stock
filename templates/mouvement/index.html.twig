@@ -2,18 +2,26 @@
 
 {% block title %}Historique des Mouvements{% endblock %}
 
+{# 1. ON AJOUTE LE DESIGN (CSS) DE DATATABLES POUR BOOTSTRAP #}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
 {% block body %}
     <div class="mb-4">
         <h1>📜 Journal des Mouvements</h1>
         <p class="text-muted">Tracez toutes les entrées et sorties de stock.</p>
     </div>
 
-    <div class="card shadow">
+    <div class="card shadow border-0">
         <div class="card-body">
-            <table class="table table-striped table-hover">
+            {# 2. ON AJOUTE L'ID "table-mouvements" AU TABLEAU #}
+            <table id="table-mouvements" class="table table-striped table-hover w-100">
                 <thead class="table-dark">
                     <tr>
                         <th>Date & Heure</th>
+                        <th>Opérateur</th>
                         <th>Produit</th>
                         <th>Type</th>
                         <th>Quantité</th>
@@ -24,14 +32,25 @@
                 <tbody>
                 {% for mouv in mouvements %}
                     <tr>
-                        <td>{{ mouv.dateMouvement|date('d/m/Y H:i') }}</td>
-                        
+                    
+                        {# On ajoute un attribut data-sort pour que DataTables trie bien les dates #}
+                        <td data-sort="{{ mouv.dateMouvement|date('Y-m-d H:i') }}">
+                            {{ mouv.dateMouvement|date('d/m/Y H:i') }}
+                        </td>
                         <td>
-                            <strong>{{ mouv.produit.nom }}</strong>
-                            <br>
+                            {# On vérifie si un utilisateur est bien lié au mouvement #}
+                            {% if mouv.user %}
+                                <span class="badge bg-secondary">
+                                    <i class="fa-solid fa-user me-1"></i> {{ mouv.user.email }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">Système</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ mouv.produit.nom }}</strong><br>
                             <small class="text-muted">{{ mouv.produit.reference }}</small>
                         </td>
-
                         <td>
                             {% if mouv.quantite > 0 %}
                                 <span class="badge bg-success">ENTRÉE</span>
@@ -41,11 +60,9 @@
                             <br>
                             <small class="text-muted">{{ mouv.type }}</small>
                         </td>
-
                         <td class="fw-bold fs-5">
                             {% if mouv.quantite > 0 %}+{% endif %}{{ mouv.quantite }}
                         </td>
-
                         <td>{{ mouv.entrepot.nom }}</td>
                         <td>
                             <a href="{{ path('app_mouvement_pdf', {'id': mouv.id}) }}" target="_blank" class="btn btn-sm btn-outline-dark">
@@ -53,13 +70,34 @@
                             </a>
                         </td>
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center">Aucun mouvement enregistré.</td>
-                    </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+{% endblock %}
+
+{# 3. ON INITIALISE LE SCRIPT JAVASCRIPT DATATABLES #}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#table-mouvements').DataTable({
+                // On passe l'interface en Français
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"
+                },
+                // On trie la colonne 0 (Date) par ordre décroissant par défaut
+                "order": [[ 0, "desc" ]],
+                // On affiche 10 lignes par page
+                "pageLength": 10,
+                // On rend le tableau responsive
+                "responsive": true
+            });
+        });
+    </script>
 {% endblock %}

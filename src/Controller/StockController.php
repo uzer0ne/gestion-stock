@@ -123,6 +123,7 @@ final class StockController extends AbstractController
         $mouvement->setEntrepot($stock->getEntrepot());
         $mouvement->setQuantite($quantite);
         $mouvement->setDateMouvement(new \DateTimeImmutable());
+        $mouvement->setUser($this->getUser());
         
         // On définit le type (Entrée ou Sortie)
         $type = ($sens === 'plus') ? 'ENTREE_MANUELLE' : 'SORTIE_MANUELLE';

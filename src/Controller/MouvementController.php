@@ -28,6 +28,10 @@ class MouvementController extends AbstractController
         // 1. Configurer DomPDF
         $pdfOptions = new Options();
         $pdfOptions->set('defaultFont', 'Arial');
+        
+        $pdfOptions->set('chroot', $this->getParameter('kernel.project_dir') . '/public');
+        // Autorise le chargement des images (utile pour certains formats)
+        $pdfOptions->set('isRemoteEnabled', true);
         $dompdf = new Dompdf($pdfOptions);
 
         // 2. Générer le HTML (On va créer ce fichier juste après)
