@@ -164,12 +164,32 @@ final class ProduitController extends AbstractController
 
     #[Route('/{id}/clone', name: 'app_produit_clone', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_MAGASINIER')] // Le magasinier peut cloner des produits
-    public function clone(Produit $produitOriginal, Request $request, EntityManagerInterface $entityManager): Response
+    public function clone(
+        Produit $produitOriginal, 
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        ProduitRepository $produitRepository // <-- J'ai ajouté l'injection du Repository ici
+    ): Response
     {
         $nouveauProduit = clone $produitOriginal;
 
-        $nouveauProduit->setNom($produitOriginal->getNom() . ' (Copie)');
-        $nouveauProduit->setReference($produitOriginal->getReference() . '-COPY');
+        // 1. Nettoyage du nom pour éviter les "Nom (Copie) (Copie)"
+        $nomDeBase = str_replace(' (Copie)', '', $produitOriginal->getNom());
+        $nouveauProduit->setNom($nomDeBase . ' (Copie)');
+
+        // 2. ALGORITHME DE RÉFÉRENCE INTELLIGENTE
+        $baseReference = $produitOriginal->getReference();
+        $counter = 1;
+        $nouvelleReference = $baseReference . '-' . $counter;
+
+        // Tant que la référence existe déjà en BDD, on augmente le chiffre
+        while ($produitRepository->findOneBy(['reference' => $nouvelleReference])) {
+            $counter++;
+            $nouvelleReference = $baseReference . '-' . $counter;
+        }
+
+        // On assigne la référence libre trouvée
+        $nouveauProduit->setReference($nouvelleReference);
 
         $form = $this->createForm(ProduitType::class, $nouveauProduit);
         $form->handleRequest($request);
@@ -178,7 +198,7 @@ final class ProduitController extends AbstractController
             $entityManager->persist($nouveauProduit);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Le produit a été dupliqué avec succès. Vous pouvez maintenant l\'ajuster.');
+            $this->addFlash('success', 'Le produit a été dupliqué avec succès avec la référence : ' . $nouvelleReference);
 
             return $this->redirectToRoute('app_produit_index');
         }

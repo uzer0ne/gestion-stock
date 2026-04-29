@@ -136,7 +136,8 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Demande annuelle estimée (D)</label>
                                 <div class="input-group">
-                                    <input type="number" id="wilson-d" class="form-control" placeholder="Ex: 1200" value="1000">
+                                    {# CORRECTION : Ajout du min="1" #}
+                                    <input type="number" id="wilson-d" class="form-control" placeholder="Ex: 1200" value="1000" min="1">
                                     <span class="input-group-text">unités/an</span>
                                 </div>
                             </div>
@@ -144,7 +145,8 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Coût de passation d'une commande (Cc)</label>
                                 <div class="input-group">
-                                    <input type="number" id="wilson-cc" class="form-control" placeholder="Ex: 50" value="45">
+                                    {# CORRECTION : Ajout du min="0.1" et step #}
+                                    <input type="number" id="wilson-cc" class="form-control" placeholder="Ex: 50" value="45" min="0.1" step="0.1">
                                     <span class="input-group-text">€ / commande</span>
                                 </div>
                                 <div class="form-text">Frais de transport, traitement administratif, etc.</div>
@@ -153,7 +155,8 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Taux de possession annuel (t)</label>
                                 <div class="input-group">
-                                    <input type="number" id="wilson-t" class="form-control" placeholder="Ex: 15" value="15">
+                                    {# CORRECTION : Ajout du min="0.1" et step #}
+                                    <input type="number" id="wilson-t" class="form-control" placeholder="Ex: 15" value="15" min="0.1" step="0.1">
                                     <span class="input-group-text">%</span>
                                 </div>
                                 <div class="form-text">Pourcentage du prix de vente (Assurance, usure, loyer de l'entrepôt).</div>
@@ -205,9 +208,21 @@
         let t = parseFloat(document.getElementById('wilson-t').value) / 100; // Conversion % en décimale
         let prix = parseFloat(document.getElementById('wilson-prix').value);
 
-        // 2. Sécurité : vérifier que les champs sont remplis et cohérents
-        if (isNaN(d) || isNaN(cc) || isNaN(t) || d <= 0 || prix <= 0) {
-            alert("Veuillez remplir correctement toutes les valeurs avec des nombres positifs.");
+        
+        if (isNaN(d) || d <= 0) {
+            alert("Veuillez saisir une demande annuelle valide (supérieure à 0).");
+            return;
+        }
+        if (isNaN(cc) || cc <= 0) {
+            alert("Veuillez saisir un coût de commande valide (supérieur à 0).");
+            return;
+        }
+        if (isNaN(t) || t <= 0) {
+            alert("Veuillez saisir un taux de possession valide (supérieur à 0).");
+            return;
+        }
+        if (isNaN(prix) || prix <= 0) {
+            alert("Erreur technique : Le prix du produit est invalide.");
             return;
         }
 

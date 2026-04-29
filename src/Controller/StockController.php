@@ -57,20 +57,26 @@ final class StockController extends AbstractController
         Request $request, 
         Stock $stock, 
         EntityManagerInterface $entityManager,
-        StockAlertService $alertService // <-- On injecte le service ici aussi au cas où on modifie via le formulaire
+        StockAlertService $alertService
     ): Response
     {
+        // 1. On mémorise la quantité AVANT que le formulaire ne la modifie
+        $ancienStock = $stock->getQuantite();
+
         $form = $this->createForm(StockType::class, $stock);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            // Vérification du seuil après modification manuelle
-            $produit = $stock->getProduit();
-            if ($produit->getSeuilAlerte() !== null && $stock->getQuantite() <= $produit->getSeuilAlerte()) {
+            // 2. On récupère la nouvelle quantité et le seuil
+            $nouveauStock = $stock->getQuantite();
+            $seuil = $stock->getProduit()->getSeuilAlerte();
+
+            // 3. Vérification du franchissement de seuil
+            if ($seuil !== null && $ancienStock > $seuil && $nouveauStock <= $seuil) {
                 $alertService->sendAlertEmail($stock);
-                $this->addFlash('warning', '⚠️ Le stock est critique. Un email d\'alerte a été envoyé.');
+                $this->addFlash('warning', '⚠️ Le stock est tombé en dessous du seuil critique. Un email d\'alerte a été envoyé.');
             } else {
                 $this->addFlash('success', 'Stock modifié avec succès.');
             }
@@ -83,7 +89,6 @@ final class StockController extends AbstractController
             'form' => $form,
         ]);
     }
-
     #[Route('/{id}', name: 'app_stock_delete', methods: ['POST'])]
     public function delete(Request $request, Stock $stock, EntityManagerInterface $entityManager): Response
     {
@@ -133,24 +138,84 @@ final class StockController extends AbstractController
         $entityManager->persist($mouvement); // Prépare le mouvement
         $entityManager->flush();             // Envoie tout en base (Stock + Mouvement)
 
-        // 5. VÉRIFICATION DU SEUIL D'ALERTE
+        // 5. VÉRIFICATION DU SEUIL D'ALERTE (CORRIGÉE)
         $produit = $stock->getProduit();
+        $seuil = $produit->getSeuilAlerte();
         
-        // Si le produit a un seuil défini ET que le nouveau stock est inférieur ou égal à ce seuil
-        if ($produit->getSeuilAlerte() !== null && $nouveauStock <= $produit->getSeuilAlerte()) {
+        // On récupère l'ancien stock (avant l'opération qu'on vient de faire)
+        $ancienStock = $stock->getQuantite() - $quantite;
+
+        // Si on a un seuil ET qu'on vient tout juste de le franchir vers le bas !
+        if ($seuil !== null && $ancienStock > $seuil && $nouveauStock <= $seuil) {
             
-            // On envoie l'email
+            // On envoie l'email une seule fois
             $alertService->sendAlertEmail($stock);
             
-            // Message de succès avec un avertissement
-            $this->addFlash('warning', 'Stock mis à jour (-1). ⚠️ ALERTE : Le seuil critique est atteint, un email a été envoyé !');
+            $this->addFlash('warning', 'Stock mis à jour. ⚠️ ALERTE : Le seuil critique vient d\'être franchi, un email a été envoyé !');
             
         } else {
-            // 5bis. Petit message de succès classique si tout va bien
+            // Pas d'email si on ajoute du stock ou si on était déjà en dessous du seuil
             $this->addFlash('success', 'Stock mis à jour avec succès !');
         }
 
         // 6. Retour à la liste
+        return $this->redirectToRoute('app_stock_index');
+    }
+
+    #[Route('/stock/mouvement-masse/{id}', name: 'app_stock_mouvement_masse', methods: ['POST'])]
+    public function mouvementMasse(
+        Request $request, 
+        Stock $stock, 
+        EntityManagerInterface $entityManager,
+        StockAlertService $alertService
+    ): Response
+    {
+        // 1. Récupération des données du formulaire
+        $quantiteSaisie = (int) $request->request->get('quantite');
+        $action = $request->request->get('action'); // 'ajout' ou 'retrait'
+
+        // Sécurité de base
+        if ($quantiteSaisie <= 0) {
+            $this->addFlash('danger', 'Veuillez saisir une quantité valide (supérieure à 0).');
+            return $this->redirectToRoute('app_stock_index');
+        }
+
+        // 2. Calculs
+        $ancienStock = $stock->getQuantite();
+        $vraiQuantite = ($action === 'ajout') ? $quantiteSaisie : -$quantiteSaisie;
+        $nouveauStock = $ancienStock + $vraiQuantite;
+
+        if ($nouveauStock < 0) {
+            $this->addFlash('danger', 'Impossible ! Le stock ne peut pas être négatif.');
+            return $this->redirectToRoute('app_stock_index');
+        }
+
+        $stock->setQuantite($nouveauStock);
+
+        // 3. Création de l'historique
+        $mouvement = new \App\Entity\MouvementStock();
+        $mouvement->setProduit($stock->getProduit());
+        $mouvement->setEntrepot($stock->getEntrepot());
+        $mouvement->setQuantite($vraiQuantite);
+        $mouvement->setDateMouvement(new \DateTimeImmutable());
+        $mouvement->setUser($this->getUser());
+        
+        // On précise que c'est un mouvement de lot
+        $type = ($action === 'ajout') ? 'RECEPTION_LOT' : 'EXPEDITION_LOT';
+        $mouvement->setType($type);
+
+        $entityManager->persist($mouvement);
+        $entityManager->flush();
+
+        // 4. Gestion des alertes (Détection de franchissement)
+        $seuil = $stock->getProduit()->getSeuilAlerte();
+        if ($seuil !== null && $ancienStock > $seuil && $nouveauStock <= $seuil) {
+            $alertService->sendAlertEmail($stock);
+            $this->addFlash('warning', 'Lot traité. ⚠️ ALERTE : Le stock est passé sous le seuil critique !');
+        } else {
+            $this->addFlash('success', 'Le lot de ' . $quantiteSaisie . ' unité(s) a bien été traité.');
+        }
+
         return $this->redirectToRoute('app_stock_index');
     }
 }

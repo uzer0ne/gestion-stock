@@ -49,8 +49,8 @@ security:
         # 1. On laisse la porte ouverte UNIQUEMENT pour la page de connexion
         - { path: ^/login, roles: PUBLIC_ACCESS }
         
-        # (Optionnel) Si tu as une page d'inscription publique, décommente la ligne ci-dessous :
-        # - { path: ^/register, roles: PUBLIC_ACCESS }
+        
+        - { path: ^/register, roles: PUBLIC_ACCESS }
 
         # 2. LE COUPERET : Tout le reste de l'application (qui commence par "/") nécessite d'être connecté !
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
